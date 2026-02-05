@@ -1,0 +1,536 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================
+// ENUMS
+// ============================================
+
+enum Role {
+  USER
+  ADMIN
+  MANAGER
+}
+
+enum ProjectStatus {
+  DRAFT
+  PLANNING
+  PRE_PRODUCTION
+  PRODUCTION
+  POST_PRODUCTION
+  COMPLETED
+  ARCHIVED
+}
+
+enum ScriptStatus {
+  DRAFT
+  OUTLINE
+  REVIEW
+  APPROVED
+  FINAL
+}
+
+enum ScriptType {
+  OUTLINE
+  TREATMENT
+  SCREENPLAY
+  STORYBOARD
+  SHOT_LIST
+}
+
+enum TaskStatus {
+  TODO
+  IN_PROGRESS
+  BLOCKED
+  REVIEW
+  COMPLETED
+  CANCELLED
+}
+
+enum TaskPriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+enum BudgetCategory {
+  PRE_PRODUCTION
+  PRODUCTION
+  POST_PRODUCTION
+  EQUIPMENT
+  LOCATIONS
+  TALENT
+  CREW
+  CATERING
+  TRAVEL
+  MISCELLANEOUS
+  CONTINGENCY
+}
+
+enum BudgetStatus {
+  ESTIMATED
+  APPROVED
+  PENDING
+  PAID
+  OVER_BUDGET
+}
+
+enum LocationType {
+  INTERIOR
+  EXTERIOR
+  STUDIO
+  GREEN_SCREEN
+  VIRTUAL
+}
+
+enum LocationStatus {
+  SCOUTING
+  CONTACTED
+  VISITED
+  NEGOTIATING
+  BOOKED
+  CONFIRMED
+  CANCELLED
+}
+
+enum TeamRole {
+  DIRECTOR
+  PRODUCER
+  DOP
+  CAMERA_OPERATOR
+  SOUND_ENGINEER
+  EDITOR
+  ASSISTANT
+  PRODUCTION_DESIGNER
+  MAKEUP_ARTIST
+  STYLIST
+  TALENT
+  OTHER
+}
+
+enum FileType {
+  IMAGE
+  VIDEO
+  AUDIO
+  DOCUMENT
+  SCRIPT
+  STORYBOARD
+  REFERENCE
+  MOODBOARD
+}
+
+enum FileStatus {
+  UPLOADING
+  PROCESSING
+  READY
+  ERROR
+  ARCHIVED
+}
+
+// ============================================
+// USER & AUTH (NextAuth compatible)
+// ============================================
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@index([userId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String    @unique
+  emailVerified DateTime?
+  image         String?
+  role          Role      @default(USER)
+  
+  // Relations
+  accounts      Account[]
+  sessions      Session[]
+  projects      Project[]
+  tasksAssigned Task[]    @relation("AssignedTasks")
+  teamMembers   TeamMember[]
+  
+  // Soft delete
+  deletedAt     DateTime?
+  
+  // Timestamps
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@index([email])
+  @@index([role])
+  @@index([deletedAt])
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+// ============================================
+// CORE MODELS
+// ============================================
+
+model Project {
+  id          String        @id @default(cuid())
+  name        String
+  description String?       @db.Text
+  status      ProjectStatus @default(DRAFT)
+  
+  // Budget & Timeline
+  totalBudget Float?
+  currency    String        @default("EUR")
+  startDate   DateTime?
+  deadline    DateTime?
+  
+  // Metadata
+  genre       String?
+  duration    Int?          // in minutes
+  format      String?       // e.g., "16:9", "9:16", "1:1"
+  target      String?       // target audience
+  
+  // Relations
+  userId      String
+  user        User          @relation(fields: [userId], references: [id])
+  scripts     Script[]
+  tasks       Task[]
+  budgets     Budget[]
+  locations   Location[]
+  teamMembers TeamMember[]
+  files       File[]
+  
+  // Soft delete
+  deletedAt   DateTime?
+  
+  // Timestamps
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  @@index([userId])
+  @@index([status])
+  @@index([deadline])
+  @@index([deletedAt])
+}
+
+model Script {
+  id          String      @id @default(cuid())
+  title       String
+  content     String      @db.Text
+  type        ScriptType  @default(OUTLINE)
+  status      ScriptStatus @default(DRAFT)
+  version     Int         @default(1)
+  
+  // Optional structured fields
+  logline     String?     @db.Text
+  synopsis    String?     @db.Text
+  notes       String?     @db.Text
+  
+  // Relations
+  projectId   String
+  project     Project     @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  scenes      Scene[]
+  files       File[]
+  
+  // Soft delete
+  deletedAt   DateTime?
+  
+  // Timestamps
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  @@index([projectId])
+  @@index([status])
+  @@index([type])
+  @@index([deletedAt])
+}
+
+model Scene {
+  id          String    @id @default(cuid())
+  number      Int
+  heading     String    // e.g., "INT. LIVING ROOM - DAY"
+  content     String    @db.Text
+  notes       String?   @db.Text
+  
+  // Metadata
+  location    String?
+  timeOfDay   String?
+  estimatedDuration Int? // in seconds
+  
+  // Relations
+  scriptId    String
+  script      Script    @relation(fields: [scriptId], references: [id], onDelete: Cascade)
+  shots       Shot[]
+  
+  // Timestamps
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([scriptId])
+  @@unique([scriptId, number])
+}
+
+model Shot {
+  id          String    @id @default(cuid())
+  number      String    // e.g., "1A", "1B"
+  description String    @db.Text
+  shotType    String?   // e.g., "WIDE", "CLOSE-UP", "MCU"
+  cameraAngle String?   // e.g., "HIGH", "LOW", "EYE-LEVEL"
+  movement    String?   // e.g., "PAN", "TILT", "DOLLY"
+  equipment   String?   // e.g., "STEADICAM", "DRONE", "GIMBAL"
+  duration    Int?      // in seconds
+  notes       String?   @db.Text
+  
+  // Relations
+  sceneId     String
+  scene       Scene     @relation(fields: [sceneId], references: [id], onDelete: Cascade)
+  
+  // Timestamps
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([sceneId])
+  @@unique([sceneId, number])
+}
+
+model Task {
+  id          String       @id @default(cuid())
+  title       String
+  description String?      @db.Text
+  status      TaskStatus   @default(TODO)
+  priority    TaskPriority @default(MEDIUM)
+  
+  // Timeline
+  startDate   DateTime?
+  dueDate     DateTime?
+  completedAt DateTime?
+  
+  // Relations
+  projectId   String
+  project     Project      @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  assignedToId String?
+  assignedTo  User?        @relation("AssignedTasks", fields: [assignedToId], references: [id])
+  
+  // Hierarchy (subtasks)
+  parentId    String?
+  parent      Task?        @relation("Subtasks", fields: [parentId], references: [id])
+  subtasks    Task[]       @relation("Subtasks")
+  
+  // Soft delete
+  deletedAt   DateTime?
+  
+  // Timestamps
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  @@index([projectId])
+  @@index([assignedToId])
+  @@index([status])
+  @@index([priority])
+  @@index([dueDate])
+  @@index([deletedAt])
+}
+
+model Budget {
+  id          String        @id @default(cuid())
+  category    BudgetCategory
+  item        String
+  description String?
+  
+  // Financials
+  estimated   Float         @default(0)
+  actual      Float?
+  quantity    Int           @default(1)
+  unitCost    Float?
+  
+  // Status
+  status      BudgetStatus  @default(ESTIMATED)
+  paidDate    DateTime?
+  vendor      String?
+  invoice     String?
+  
+  // Relations
+  projectId   String
+  project     Project       @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  
+  // Soft delete
+  deletedAt   DateTime?
+  
+  // Timestamps
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  @@index([projectId])
+  @@index([category])
+  @@index([status])
+  @@index([deletedAt])
+}
+
+model Location {
+  id          String        @id @default(cuid())
+  name        String
+  address     String?
+  city        String?
+  country     String        @default("Italia")
+  postalCode  String?
+  
+  // Location details
+  type        LocationType  @default(INTERIOR)
+  description String?       @db.Text
+  amenities   String[]      // e.g., ["parking", "wifi", "power"]
+  dimensions  String?       // e.g., "10x15m"
+  
+  // Contact
+  contactName String?
+  contactEmail String?
+  contactPhone String?
+  
+  // Cost
+  costPerDay  Float?
+  currency    String        @default("EUR")
+  
+  // Scouting
+  status      LocationStatus @default(SCOUTING)
+  rating      Int?          // 1-5
+  notes       String?       @db.Text
+  
+  // Images/References
+  photos      String[]      // URLs to images
+  
+  // Relations
+  projectId   String
+  project     Project       @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  files       File[]
+  
+  // Soft delete
+  deletedAt   DateTime?
+  
+  // Timestamps
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  @@index([projectId])
+  @@index([status])
+  @@index([city])
+  @@index([type])
+  @@index([deletedAt])
+}
+
+model TeamMember {
+  id          String    @id @default(cuid())
+  role        TeamRole  @default(OTHER)
+  customRole  String?   // For custom role names
+  
+  // Contact & Profile
+  name        String
+  email       String?
+  phone       String?
+  bio         String?   @db.Text
+  portfolio   String?   // URL
+  
+  // Availability & Cost
+  dailyRate   Float?
+  currency    String    @default("EUR")
+  
+  // Relations
+  projectId   String
+  project     Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  userId      String?   // Link to app user if registered
+  user        User?     @relation(fields: [userId], references: [id])
+  
+  // Soft delete
+  deletedAt   DateTime?
+  
+  // Timestamps
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([projectId])
+  @@index([role])
+  @@index([userId])
+  @@index([deletedAt])
+  @@unique([projectId, email])
+}
+
+model File {
+  id          String    @id @default(cuid())
+  name        String
+  originalName String
+  
+  // Storage
+  url         String
+  thumbnailUrl String?
+  path        String    // Storage path in Supabase
+  size        Int       // in bytes
+  mimeType    String
+  
+  // Type & Status
+  type        FileType  @default(DOCUMENT)
+  status      FileStatus @default(UPLOADING)
+  
+  // Metadata
+  width       Int?
+  height      Int?
+  duration    Int?      // for video/audio in seconds
+  tags        String[]
+  description String?   @db.Text
+  
+  // Relations (polymorphic via optional fields)
+  projectId   String?
+  project     Project?  @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  scriptId    String?
+  script      Script?   @relation(fields: [scriptId], references: [id], onDelete: SetNull)
+  locationId  String?
+  location    Location? @relation(fields: [locationId], references: [id], onDelete: SetNull)
+  
+  // Uploader
+  uploadedBy  String?
+  
+  // Soft delete
+  deletedAt   DateTime?
+  
+  // Timestamps
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([projectId])
+  @@index([scriptId])
+  @@index([locationId])
+  @@index([type])
+  @@index([status])
+  @@index([deletedAt])
+}

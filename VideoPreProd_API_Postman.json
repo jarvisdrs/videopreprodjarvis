@@ -1,0 +1,397 @@
+{
+  "info": {
+    "_postman_id": "videopreprod-api-v1",
+    "name": "VideoPreProd AI API",
+    "description": "REST API per gestione progetti video pre-produzione",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Projects",
+      "item": [
+        {
+          "name": "List Projects",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/projects?page=1&limit=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["projects"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "20" },
+                { "key": "status", "value": "DRAFT", "disabled": true },
+                { "key": "search", "value": "documentario", "disabled": true }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create Project",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Documentario Mare\",\n  \"description\": \"Documentario sulla vita marina nel Mediterraneo\",\n  \"status\": \"DRAFT\",\n  \"totalBudget\": 50000,\n  \"currency\": \"EUR\",\n  \"startDate\": \"2024-06-01T00:00:00.000Z\",\n  \"deadline\": \"2024-12-31T00:00:00.000Z\",\n  \"genre\": \"Documentario\",\n  \"duration\": 45,\n  \"format\": \"16:9\",\n  \"target\": \"Pubblico giovane interessato alla natura\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/projects", "host": ["{{baseUrl}}"], "path": ["projects"] }
+          }
+        },
+        {
+          "name": "Get Project",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/projects/{{projectId}}", "host": ["{{baseUrl}}"], "path": ["projects", "{{projectId}}"] }
+          }
+        },
+        {
+          "name": "Update Project",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Documentario Mare - Updated\",\n  \"status\": \"PLANNING\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/projects/{{projectId}}", "host": ["{{baseUrl}}"], "path": ["projects", "{{projectId}}"] }
+          }
+        },
+        {
+          "name": "Delete Project",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/projects/{{projectId}}", "host": ["{{baseUrl}}"], "path": ["projects", "{{projectId}}"] }
+          }
+        },
+        {
+          "name": "Get Project Stats",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/projects/{{projectId}}/stats", "host": ["{{baseUrl}}"], "path": ["projects", "{{projectId}}", "stats"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Scripts",
+      "item": [
+        {
+          "name": "List Scripts",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/projects/{{projectId}}/scripts",
+              "host": ["{{baseUrl}}"],
+              "path": ["projects", "{{projectId}}", "scripts"],
+              "query": [
+                { "key": "type", "value": "SCREENPLAY", "disabled": true },
+                { "key": "status", "value": "DRAFT", "disabled": true }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create Script",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Outline Principale\",\n  \"content\": \"FADE IN:\\n\\nINT. MUSEO - GIORNO\\n\\nIl museo si sveglia lentamente...\",\n  \"type\": \"OUTLINE\",\n  \"status\": \"DRAFT\",\n  \"logline\": \"Un viaggio nel cuore del Mediterraneo\",\n  \"synopsis\": \"Documentario che esplora...\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/projects/{{projectId}}/scripts", "host": ["{{baseUrl}}"], "path": ["projects", "{{projectId}}", "scripts"] }
+          }
+        },
+        {
+          "name": "Get Script",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/projects/{{projectId}}/scripts/{{scriptId}}", "host": ["{{baseUrl}}"], "path": ["projects", "{{projectId}}", "scripts", "{{scriptId}}"] }
+          }
+        },
+        {
+          "name": "Update Script",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"REVIEW\",\n  \"content\": \"Contenuto aggiornato...\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/projects/{{projectId}}/scripts/{{scriptId}}", "host": ["{{baseUrl}}"], "path": ["projects", "{{projectId}}", "scripts", "{{scriptId}}"] }
+          }
+        },
+        {
+          "name": "Delete Script",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/projects/{{projectId}}/scripts/{{scriptId}}", "host": ["{{baseUrl}}"], "path": ["projects", "{{projectId}}", "scripts", "{{scriptId}}"] }
+          }
+        },
+        {
+          "name": "Generate Script (AI)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"projectId\": \"{{projectId}}\",\n  \"prompt\": \"Un documentario sulla vita marina nel Mediterraneo che esplora le profondità e la biodiversità\",\n  \"type\": \"OUTLINE\",\n  \"tone\": \"documentary\",\n  \"duration\": 30\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/scripts/generate", "host": ["{{baseUrl}}"], "path": ["scripts", "generate"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Tasks",
+      "item": [
+        {
+          "name": "List Tasks",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/projects/{{projectId}}/tasks?status=TODO",
+              "host": ["{{baseUrl}}"],
+              "path": ["projects", "{{projectId}}", "tasks"],
+              "query": [
+                { "key": "status", "value": "TODO", "disabled": true },
+                { "key": "priority", "value": "HIGH", "disabled": true },
+                { "key": "assignedToId", "value": "user-id", "disabled": true },
+                { "key": "parentOnly", "value": "true", "disabled": true }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create Task",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Scout location lago\",\n  \"description\": \"Trovare location sul lago di Como\",\n  \"status\": \"TODO\",\n  \"priority\": \"HIGH\",\n  \"dueDate\": \"2024-06-15T00:00:00.000Z\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/projects/{{projectId}}/tasks", "host": ["{{baseUrl}}"], "path": ["projects", "{{projectId}}", "tasks"] }
+          }
+        },
+        {
+          "name": "Get Task",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/projects/{{projectId}}/tasks/{{taskId}}", "host": ["{{baseUrl}}"], "path": ["projects", "{{projectId}}", "tasks", "{{taskId}}"] }
+          }
+        },
+        {
+          "name": "Update Task",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"IN_PROGRESS\",\n  \"assignedToId\": \"user-id\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/projects/{{projectId}}/tasks/{{taskId}}", "host": ["{{baseUrl}}"], "path": ["projects", "{{projectId}}", "tasks", "{{taskId}}"] }
+          }
+        },
+        {
+          "name": "Delete Task",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/projects/{{projectId}}/tasks/{{taskId}}", "host": ["{{baseUrl}}"], "path": ["projects", "{{projectId}}", "tasks", "{{taskId}}"] }
+          }
+        },
+        {
+          "name": "Get Kanban Board",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/projects/{{projectId}}/tasks/kanban", "host": ["{{baseUrl}}"], "path": ["projects", "{{projectId}}", "tasks", "kanban"] }
+          }
+        },
+        {
+          "name": "Update Kanban (Bulk)",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"updates\": [\n    { \"taskId\": \"task-1\", \"status\": \"IN_PROGRESS\" },\n    { \"taskId\": \"task-2\", \"status\": \"COMPLETED\" }\n  ]\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/projects/{{projectId}}/tasks/kanban", "host": ["{{baseUrl}}"], "path": ["projects", "{{projectId}}", "tasks", "kanban"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Budget",
+      "item": [
+        {
+          "name": "List Budget Items",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/projects/{{projectId}}/budget",
+              "host": ["{{baseUrl}}"],
+              "path": ["projects", "{{projectId}}", "budget"],
+              "query": [
+                { "key": "category", "value": "EQUIPMENT", "disabled": true },
+                { "key": "status", "value": "PAID", "disabled": true }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create Budget Item",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"category\": \"EQUIPMENT\",\n  \"item\": \"Camera Sony FX6\",\n  \"description\": \"Noleggio giornaliero\",\n  \"estimated\": 250,\n  \"actual\": 250,\n  \"quantity\": 5,\n  \"unitCost\": 50,\n  \"status\": \"PAID\",\n  \"paidDate\": \"2024-06-01T00:00:00.000Z\",\n  \"vendor\": \"Rental Company Srl\",\n  \"invoice\": \"INV-001\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/projects/{{projectId}}/budget", "host": ["{{baseUrl}}"], "path": ["projects", "{{projectId}}", "budget"] }
+          }
+        },
+        {
+          "name": "Get Budget Summary",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/projects/{{projectId}}/budget/summary", "host": ["{{baseUrl}}"], "path": ["projects", "{{projectId}}", "budget", "summary"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Team",
+      "item": [
+        {
+          "name": "List Team Members",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/projects/{{projectId}}/team", "host": ["{{baseUrl}}"], "path": ["projects", "{{projectId}}", "team"] }
+          }
+        },
+        {
+          "name": "Add Team Member",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"role\": \"DOP\",\n  \"customRole\": \"Director of Photography\",\n  \"name\": \"Mario Rossi\",\n  \"email\": \"mario@example.com\",\n  \"phone\": \"+39 123 456 7890\",\n  \"bio\": \"Esperto DOP con 10 anni di esperienza\",\n  \"dailyRate\": 500,\n  \"currency\": \"EUR\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/projects/{{projectId}}/team", "host": ["{{baseUrl}}"], "path": ["projects", "{{projectId}}", "team"] }
+          }
+        },
+        {
+          "name": "Remove Team Member",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/projects/{{projectId}}/team/{{memberId}}", "host": ["{{baseUrl}}"], "path": ["projects", "{{projectId}}", "team", "{{memberId}}"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Locations",
+      "item": [
+        {
+          "name": "List Locations",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/projects/{{projectId}}/locations",
+              "host": ["{{baseUrl}}"],
+              "path": ["projects", "{{projectId}}", "locations"],
+              "query": [
+                { "key": "status", "value": "SCOUTING", "disabled": true },
+                { "key": "type", "value": "EXTERIOR", "disabled": true },
+                { "key": "city", "value": "Como", "disabled": true }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create Location",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Villa sul Lago\",\n  \"address\": \"Via del Lago 123\",\n  \"city\": \"Como\",\n  \"country\": \"Italia\",\n  \"type\": \"EXTERIOR\",\n  \"description\": \"Villa storica con vista sul lago\",\n  \"amenities\": [\"parking\", \"power\", \"wifi\"],\n  \"costPerDay\": 500,\n  \"status\": \"SCOUTING\",\n  \"rating\": 4\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/projects/{{projectId}}/locations", "host": ["{{baseUrl}}"], "path": ["projects", "{{projectId}}", "locations"] }
+          }
+        },
+        {
+          "name": "Update Location",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"BOOKED\",\n  \"costPerDay\": 450\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/projects/{{projectId}}/locations/{{locId}}", "host": ["{{baseUrl}}"], "path": ["projects", "{{projectId}}", "locations", "{{locId}}"] }
+          }
+        },
+        {
+          "name": "Delete Location",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/projects/{{projectId}}/locations/{{locId}}", "host": ["{{baseUrl}}"], "path": ["projects", "{{projectId}}", "locations", "{{locId}}"] }
+          }
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000/api",
+      "type": "string"
+    },
+    {
+      "key": "projectId",
+      "value": "your-project-id",
+      "type": "string"
+    },
+    {
+      "key": "scriptId",
+      "value": "your-script-id",
+      "type": "string"
+    },
+    {
+      "key": "taskId",
+      "value": "your-task-id",
+      "type": "string"
+    },
+    {
+      "key": "memberId",
+      "value": "your-member-id",
+      "type": "string"
+    },
+    {
+      "key": "locId",
+      "value": "your-location-id",
+      "type": "string"
+    }
+  ]
+}

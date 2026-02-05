@@ -10,9 +10,9 @@ const nextConfig = {
   productionBrowserSourceMaps: false,
   poweredByHeader: false,
   reactStrictMode: false,
-  output: 'standalone',
   experimental: {
     optimizePackageImports: ['lucide-react'],
+    serverComponentsExternalPackages: ['@prisma/client', 'prisma'],
   },
 };
 

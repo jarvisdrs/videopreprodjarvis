@@ -10,9 +10,16 @@ const nextConfig = {
   productionBrowserSourceMaps: false,
   poweredByHeader: false,
   reactStrictMode: false,
+  outputFileTracing: false,
   experimental: {
     optimizePackageImports: ['lucide-react'],
     serverComponentsExternalPackages: ['@prisma/client', 'prisma'],
+  },
+  webpack: (config, { isServer }) => {
+    if (isServer) {
+      config.externals = [...(config.externals || []), '@prisma/client', 'prisma']
+    }
+    return config
   },
 };
 

@@ -17,8 +17,7 @@ export const authOptions: NextAuthOptions = {
           prompt: "consent",
           access_type: "offline",
           response_type: "code",
-          redirect_uri: "https://videopreprod-ai.vercel.app/api/auth/callback/google",
-          state: true
+          redirect_uri: "https://videopreprod-ai.vercel.app/api/auth/callback/google"
         },
       },
     }),
@@ -46,18 +45,23 @@ export const authOptions: NextAuthOptions = {
       },
     }),
     redirect: ({ url, baseUrl }) => {
-      console.log("[NextAuth] Redirect callback:", { url, baseUrl })
-      // Forza dominio canonico
+      // Ignora baseUrl dalla richiesta, usa sempre il canonical
       const canonicalUrl = "https://videopreprod-ai.vercel.app"
+      
+      // Se è un URL assoluto esterno, convertilo in relativo
+      if (url.startsWith("http") && !url.startsWith(canonicalUrl)) {
+        url = url.replace(/^https?:\/\/[^\/]+/, "")
+      }
+      
       // Dopo login vai sempre alla dashboard
-      if (url === "/login" || url.includes("/auth/")) {
+      if (url === "/login" || url === "/auth/error") {
         return `${canonicalUrl}/dashboard`
       }
       // Se l'URL è relativo, usa canonicalUrl
       if (url.startsWith("/")) return `${canonicalUrl}${url}`
-      // Se l'URL è sul dominio canonico, consentilo
+      // Se l'URL è già sul dominio canonico, consentilo
       if (url.startsWith(canonicalUrl)) return url
-      // Altrimenti reindirizza alla dashboard di default
+      // Fallback alla dashboard
       return `${canonicalUrl}/dashboard`
     },
   },

@@ -17,6 +17,7 @@ enum Role {
   MANAGER
 }
 
+// Role as string for compatibility
 enum ProjectStatus {
   DRAFT
   PLANNING
@@ -173,7 +174,7 @@ model User {
   email         String    @unique
   emailVerified DateTime?
   image         String?
-  role          Role      @default(USER)
+  role          String    @default("USER")
   
   // Relations
   accounts      Account[]

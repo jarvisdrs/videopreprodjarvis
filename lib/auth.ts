@@ -7,6 +7,14 @@ import { authOptions as rootAuthOptions } from "@/auth"
 export const authOptions = rootAuthOptions
 
 /**
+ * Helper auth per NextAuth v5 compatibility
+ * Restituisce la sessione utente corrente
+ */
+export async function auth() {
+  return getServerSession(authOptions)
+}
+
+/**
  * Ottiene l'utente corrente dalla sessione
  * @returns L'utente corrente o null se non autenticato
  */

@@ -1,4 +1,5 @@
 import NextAuth from "next-auth"
+import { getServerSession } from "next-auth/next"
 import GoogleProvider from "next-auth/providers/google"
 import { PrismaAdapter } from "@next-auth/prisma-adapter"
 import { prisma } from "./lib/prisma"
@@ -16,7 +17,7 @@ export const authOptions: NextAuthOptions = {
           prompt: "consent",
           access_type: "offline",
           response_type: "code",
-          redirect_uri: "https://videopreprod-ai-v2.vercel.app/api/auth/callback/google"
+          redirect_uri: "https://videopreprod-ai.vercel.app/api/auth/callback/google"
         },
       },
     }),
@@ -62,6 +63,11 @@ export const authOptions: NextAuthOptions = {
       console.log("New user created:", (user as any).email)
     },
   },
+}
+
+// Export auth function for API routes compatibility
+export async function auth() {
+  return getServerSession(authOptions)
 }
 
 export default NextAuth(authOptions)

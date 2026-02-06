@@ -1,12 +1,13 @@
 export const dynamic = 'force-dynamic'
 
-import { auth } from "@/auth"
+import { getServerSession } from "next-auth/next"
 import { redirect } from "next/navigation"
 import { GoogleSignInButton } from "@/components/auth/google-signin-button"
+import { authOptions } from "@/auth"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 
 export default async function LoginPage() {
-  const session = await auth()
+  const session = await getServerSession(authOptions)
   
   // Se l'utente è già autenticato, redirect alla dashboard
   if (session?.user) {

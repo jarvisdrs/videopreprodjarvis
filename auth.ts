@@ -1,15 +1,14 @@
-import NextAuth, { type NextAuthConfig } from "next-auth"
-import Google from "next-auth/providers/google"
-import { adapter } from "./lib/adapter"
+import NextAuth from "next-auth"
+import GoogleProvider from "next-auth/providers/google"
+import { PrismaAdapter } from "@next-auth/prisma-adapter"
+import { prisma } from "./lib/prisma"
+import type { NextAuthOptions } from "next-auth"
 
-const config: NextAuthConfig = {
-  adapter,
-  secret: process.env.AUTH_SECRET,
-  // Necessario per Vercel
-  trustHost: true,
-  basePath: "/api/auth",
+export const authOptions: NextAuthOptions = {
+  adapter: PrismaAdapter(prisma),
+  secret: process.env.NEXTAUTH_SECRET,
   providers: [
-    Google({
+    GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID!,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
       authorization: {
@@ -47,4 +46,4 @@ const config: NextAuthConfig = {
   },
 }
 
-export const { handlers, auth, signIn, signOut } = NextAuth(config)
+export default NextAuth(authOptions)

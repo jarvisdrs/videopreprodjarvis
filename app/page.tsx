@@ -1,9 +1,24 @@
+"use client"
+
 import Link from 'next/link'
+import { useSession } from "next-auth/react"
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Film, Sparkles, Calendar, DollarSign, Users, MapPin, ArrowRight } from 'lucide-react'
+import { useEffect } from "react"
+import { useRouter } from "next/navigation"
 
 export default function Home() {
+  const { data: session, status } = useSession()
+  const router = useRouter()
+  
+  // Reindirizza automaticamente se loggato
+  useEffect(() => {
+    if (status === "authenticated") {
+      router.push("/dashboard")
+    }
+  }, [status, router])
+
   return (
     <div className="min-h-screen bg-background">
       <header className="border-b">
@@ -15,12 +30,20 @@ export default function Home() {
             </Link>
           </div>
           <div className="flex flex-1 items-center justify-end space-x-2">
-            <Link href="/api/auth/signin">
-              <Button variant="ghost">Sign In</Button>
-            </Link>
-            <Link href="/dashboard">
-              <Button>Get Started</Button>
-            </Link>
+            {status === "authenticated" ? (
+              <Link href="/dashboard">
+                <Button>Dashboard</Button>
+              </Link>
+            ) : (
+              <>
+                <Link href="/login">
+                  <Button variant="ghost">Sign In</Button>
+                </Link>
+                <Link href="/dashboard">
+                  <Button>Get Started</Button>
+                </Link>
+              </>
+            )}
           </div>
         </div>
       </header>

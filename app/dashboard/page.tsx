@@ -5,7 +5,8 @@ import { useSession } from "next-auth/react"
 import { useRouter } from "next/navigation"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Plus, FileText, Calendar, DollarSign, Users } from 'lucide-react'
+import { Badge } from '@/components/ui/badge'
+import { Plus, FileText, Calendar, DollarSign, Users, TrendingUp, Clock } from 'lucide-react'
 import Link from 'next/link'
 
 const recentProjects = [
@@ -17,6 +18,7 @@ const recentProjects = [
     updated_at: '2024-01-15T10:00:00Z',
     scripts_count: 3,
     tasks_count: 12,
+    budget: '$5,000',
   },
   {
     id: '2',
@@ -26,6 +28,7 @@ const recentProjects = [
     updated_at: '2024-01-14T15:30:00Z',
     scripts_count: 1,
     tasks_count: 5,
+    budget: '$12,000',
   },
   {
     id: '3',
@@ -35,101 +38,127 @@ const recentProjects = [
     updated_at: '2024-01-10T09:00:00Z',
     scripts_count: 5,
     tasks_count: 20,
+    budget: '$8,500',
   },
 ]
 
 const stats = [
-  { label: 'Active Projects', value: '5', icon: FileText },
-  { label: 'Scripts', value: '12', icon: FileText },
-  { label: 'Tasks', value: '45', icon: Calendar },
-  { label: 'Budget Used', value: '$12.5k', icon: DollarSign },
+  { label: 'Active Projects', value: '5', icon: FileText, trend: '+2 this month', color: 'bg-blue-500/10 text-blue-600' },
+  { label: 'Scripts', value: '12', icon: FileText, trend: '+5 this month', color: 'bg-purple-500/10 text-purple-600' },
+  { label: 'Tasks', value: '45', icon: Calendar, trend: '85% completed', color: 'bg-green-500/10 text-green-600' },
+  { label: 'Budget', value: '$25.5k', icon: DollarSign, trend: 'On track', color: 'bg-amber-500/10 text-amber-600' },
 ]
+
+const getStatusBadge = (status: string) => {
+  const styles = {
+    in_progress: 'bg-blue-500/10 text-blue-600 border-blue-500/20',
+    planning: 'bg-amber-500/10 text-amber-600 border-amber-500/20',
+    completed: 'bg-green-500/10 text-green-600 border-green-500/20',
+  }
+  const labels = {
+    in_progress: 'In Progress',
+    planning: 'Planning',
+    completed: 'Completed',
+  }
+  return (
+    <Badge variant="outline" className={styles[status as keyof typeof styles] || styles.planning}>
+      {labels[status as keyof typeof labels] || status}
+    </Badge>
+  )
+}
 
 export default function DashboardPage() {
   const { data: session, status } = useSession()
   const router = useRouter()
   
-  // Reindirizza al login se non autenticato
   useEffect(() => {
     if (status === "unauthenticated") {
       router.push("/login")
     }
   }, [status, router])
   
-  // Mostra loading mentre verifica la sessione
   if (status === "loading") {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
       </div>
     )
   }
   
-  // Se non autenticato, non mostrare nulla (verrà reindirizzato)
   if (status === "unauthenticated") {
     return null
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="space-y-8 animate-in fade-in duration-500">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
-          <p className="text-muted-foreground">
-            Welcome back! Here&apos;s an overview of your video production projects.
+          <p className="text-muted-foreground mt-1">
+            Welcome back, {session?.user?.name || 'User'}! Here's what's happening with your projects.
           </p>
         </div>
         <Link href="/dashboard/projects/new">
-          <Button>
-            <Plus className="mr-2 h-4 w-4" />
+          <Button size="lg" className="gap-2">
+            <Plus className="h-4 w-4" />
             New Project
           </Button>
         </Link>
       </div>
 
+      {/* Stats */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        {stats.map((stat) => {
-          const Icon = stat.icon
-          return (
-            <Card key={stat.label}>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">
-                  {stat.label}
-                </CardTitle>
-                <Icon className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{stat.value}</div>
-              </CardContent>
-            </Card>
-          )
-        })}
+        {stats.map((stat, index) => (
+          <Card key={index} className="relative overflow-hidden border-none shadow-md hover:shadow-lg transition-shadow">
+            <div className={`absolute top-0 right-0 p-3 rounded-bl-xl ${stat.color}`}>
+              <stat.icon className="h-5 w-5" />
+            </div>
+            <CardHeader className="pb-2">
+              <CardDescription className="text-sm font-medium">{stat.label}</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{stat.value}</div>
+              <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
+                <TrendingUp className="h-3 w-3" />
+                {stat.trend}
+              </p>
+            </CardContent>
+          </Card>
+        ))}
       </div>
 
-      <div>
-        <h2 className="text-xl font-semibold mb-4">Recent Projects</h2>
+      {/* Recent Projects */}
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-xl font-semibold tracking-tight">Recent Projects</h2>
+            <p className="text-sm text-muted-foreground">
+              Your latest video production projects
+            </p>
+          </div>
+          <Link href="/dashboard/projects">
+            <Button variant="ghost" size="sm">
+              View All
+            </Button>
+          </Link>
+        </div>
+
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {recentProjects.map((project) => (
-            <Card key={project.id} className="hover:shadow-md transition-shadow">
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <CardTitle className="text-lg">{project.name}</CardTitle>
-                  <span
-                    className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ${
-                      project.status === 'completed'
-                        ? 'bg-green-100 text-green-700'
-                        : project.status === 'in_progress'
-                        ? 'bg-blue-100 text-blue-700'
-                        : 'bg-yellow-100 text-yellow-700'
-                    }`}
-                  >
-                    {project.status.replace('_', ' ')}
-                  </span>
+            <Card key={project.id} className="flex flex-col border-none shadow-md hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
+              <CardHeader className="pb-3">
+                <div className="flex items-start justify-between gap-2">
+                  <CardTitle className="text-lg line-clamp-1">{project.name}</CardTitle>
+                  {getStatusBadge(project.status)}
                 </div>
-                <CardDescription>{project.description}</CardDescription>
+                <CardDescription className="line-clamp-2 mt-2">
+                  {project.description}
+                </CardDescription>
               </CardHeader>
-              <CardContent>
-                <div className="flex items-center gap-4 text-sm text-muted-foreground">
+              
+              <CardContent className="flex-1 flex flex-col">
+                <div className="flex items-center gap-4 text-sm text-muted-foreground mb-4">
                   <div className="flex items-center gap-1">
                     <FileText className="h-4 w-4" />
                     {project.scripts_count} scripts
@@ -138,10 +167,24 @@ export default function DashboardPage() {
                     <Calendar className="h-4 w-4" />
                     {project.tasks_count} tasks
                   </div>
+                  <div className="flex items-center gap-1">
+                    <DollarSign className="h-4 w-4" />
+                    {project.budget}
+                  </div>
                 </div>
-                <div className="mt-4">
+                
+                <div className="mt-auto pt-4 border-t">
+                  <div className="flex items-center justify-between text-xs text-muted-foreground mb-3">
+                    <div className="flex items-center gap-1">
+                      <Clock className="h-3 w-3" />
+                      Updated {new Date(project.updated_at).toLocaleDateString()}
+                    </div>
+                  </div>
+                  
                   <Link href={`/dashboard/projects/${project.id}`}>
-                    <Button variant="outline" className="w-full">View Project</Button>
+                    <Button variant="outline" className="w-full">
+                      View Project
+                    </Button>
                   </Link>
                 </div>
               </CardContent>

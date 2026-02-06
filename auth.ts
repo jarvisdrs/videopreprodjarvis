@@ -1,12 +1,9 @@
 import NextAuth, { type NextAuthConfig } from "next-auth"
 import Google from "next-auth/providers/google"
+import { adapter } from "./lib/adapter"
 
 const config: NextAuthConfig = {
-  adapter: async () => {
-    const { PrismaAdapter } = await import("@auth/prisma-adapter")
-    const { prisma } = await import("./lib/prisma")
-    return PrismaAdapter(prisma)
-  },
+  adapter,
   secret: process.env.AUTH_SECRET,
   providers: [
     Google({

@@ -16,6 +16,7 @@ export const authOptions: NextAuthOptions = {
           prompt: "consent",
           access_type: "offline",
           response_type: "code",
+          redirect_uri: "https://videopreprod-ai-v2.vercel.app/api/auth/callback/google"
         },
       },
     }),

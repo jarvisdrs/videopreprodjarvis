@@ -1,7 +1,7 @@
 'use client'
 
 import { useTheme } from 'next-themes'
-import { Moon, Sun } from 'lucide-react'
+import { Moon, Sun, Film } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { UserMenu } from '@/components/auth/user-menu'
 
@@ -22,6 +22,7 @@ export function Navbar({ user }: NavbarProps) {
       <div className="container flex h-14 items-center">
         <div className="mr-4 flex">
           <a href="/dashboard" className="mr-6 flex items-center space-x-2">
+            <Film className="h-6 w-6" />
             <span className="font-bold text-xl">VideoPreProd AI</span>
           </a>
         </div>
@@ -32,6 +33,8 @@ export function Navbar({ user }: NavbarProps) {
               variant="ghost"
               size="icon"
               onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+              aria-pressed={theme === 'dark'}
+              aria-label="Toggle dark mode"
             >
               <Sun className="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
               <Moon className="absolute h-[1.2rem] w-[1.2rem] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />

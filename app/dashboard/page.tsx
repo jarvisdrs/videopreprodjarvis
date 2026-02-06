@@ -1,13 +1,11 @@
 // DASHBOARD PAGE - VERSION 2026-02-06-1435
 'use client'
 
-import { useEffect } from "react"
 import { useSession } from "next-auth/react"
-import { useRouter } from "next/navigation"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Plus, FileText, Calendar, DollarSign, Users, TrendingUp, Clock } from 'lucide-react'
+import { Plus, FileText, Calendar, DollarSign, TrendingUp, Clock } from 'lucide-react'
 import Link from 'next/link'
 
 const recentProjects = [
@@ -70,15 +68,21 @@ const getStatusBadge = (status: string) => {
 
 export default function DashboardPage() {
   const { data: session, status } = useSession()
-  const router = useRouter()
+  const [projects, setProjects] = useState([])
+  const [loading, setLoading] = useState(true)
   
   useEffect(() => {
-    if (status === "unauthenticated") {
-      router.push("/login")
-    }
-  }, [status, router])
+    // Fetch real projects from API
+    fetch('/api/projects')
+      .then(res => res.json())
+      .then(data => {
+        setProjects(data.slice(0, 3)) // Show first 3
+        setLoading(false)
+      })
+      .catch(() => setLoading(false))
+  }, [])
   
-  if (status === "loading") {
+  if (status === "loading" || loading) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
@@ -95,8 +99,8 @@ export default function DashboardPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-4xl font-black tracking-tight bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
-            ✨ DASHBOARD ✨
+          <h1 className="text-3xl font-bold tracking-tight text-foreground">
+            Dashboard
           </h1>
           <p className="text-muted-foreground mt-1">
             Welcome back, {session?.user?.name || 'User'}! Here's what's happening with your projects.

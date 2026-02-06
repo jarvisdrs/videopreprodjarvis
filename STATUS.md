@@ -1,11 +1,12 @@
 # STATUS.md - VideoPreProd AI
 
-## 🚀 Status: DEPLOYATO (v2)
+## 🚀 Status: DEPLOYATO (v2) - Fix Auth Completati
 
 **URL Produzione:** https://videopreprod-ai-v2.vercel.app/
 **Repository:** https://github.com/jarvisdrs/videopreprodjarvis
 **Ultimo Deploy:** 2026-02-05 (sera)
-**Commit:** `e013e17`
+**Branch attivo:** `fix/ui-audit-2026-02-06`
+**Commit:** `c99b7d4`
 
 ---
 
@@ -13,71 +14,69 @@
 
 ### Core Features
 - [x] Next.js 14 + TypeScript + Tailwind CSS
-- [x] UI Dashboard responsive (dark/light mode)
+- [x] UI Dashboard responsive (dark/light mode) - **FIX CACHE RISOLTO**
 - [x] Prisma schema (18 modelli)
 - [x] Database Supabase con tabelle create
-- [x] NextAuth v5 setup (Google OAuth - configurazione pending)
+- [x] NextAuth v5 setup - **FIXED**
 - [x] API REST complete (18+ endpoint)
 - [x] AI Script Generation (OpenAI integration)
 - [x] Vercel Deploy v2 (nuovo progetto)
 
-### Database
-- [x] Schema SQL creato (`database-schema.sql`)
-- [x] Tabelle deployate su Supabase
-- [x] Connection string configurata
+### UI/UX Improvements (Branch fix/ui-audit-2026-02-06)
+- [x] Dashboard header cleaned (removed emoji/rainbow gradient)
+- [x] Colorful stats cards with gradients (blue, violet, emerald, amber)
+- [x] Project cards with gradient top bars
+- [x] Glassmorphism sidebar with backdrop blur
+- [x] Loading states with skeleton components
+- [x] Error handling with toast notifications (sonner)
+- [x] Sidebar tooltips when collapsed
+- [x] Empty states for no projects
+- [x] Card hover effects (lift + shadow)
 
-### Deploy Config
-- [x] Build ottimizzato
-- [x] Postinstall Prisma generate
-- [x] Dynamic API routes
+### Auth Fixes (2026-02-06)
+- [x] **redirect_uri dinamico** - usa `VERCEL_URL` in prod, localhost in dev
+- [x] **Cookie secure** - `false` in dev, `true` in produzione
+- [x] **canonicalUrl dinamico** - nelle callback di redirect
+- [x] **Rimosso NEXTAUTH_URL** da .env.local (causava problemi in dev)
 
 ---
 
-## ⚠️ Da Completare (Next Session)
+## 📋 Note Configurazione
 
-### Google OAuth Fix
-**Problema:** Redirect URI configurato su vecchio dominio
-
-**Da fare:**
-1. [ ] Google Cloud Console → APIs & Services → Credentials
-2. [ ] Aggiornare Authorized redirect URI a:
-   ```
-   https://videopreprod-ai-v2.vercel.app/api/auth/callback/google
-   ```
-3. [ ] Verificare CLIENT_ID e CLIENT_SECRET su Vercel
-4. [ ] Aggiungere AUTH_SECRET (se mancante):
-   ```bash
-   openssl rand -base64 32
-   ```
+### Google OAuth
+Il redirect URI è ora dinamico in `auth.ts`:
+```ts
+redirect_uri: process.env.VERCEL_URL 
+  ? `https://${process.env.VERCEL_URL}/api/auth/callback/google`
+  : "http://localhost:3000/api/auth/callback/google"
+```
 
 ### Environment Variables (Vercel)
 ```bash
-# Già configurati:
+# Configurati:
 DATABASE_URL=postgresql://postgres.gvxndxhiiflzqnjaykgr:...@aws-1-eu-west-3.pooler.supabase.com:6543/postgres?pgbouncer=true
 NODE_ENV=production
-
-# Da verificare/configurare:
-AUTH_SECRET=[generare]
-GOOGLE_CLIENT_ID=[verificare]
-GOOGLE_CLIENT_SECRET=[verificare]
+AUTH_SECRET=[configurato]
+GOOGLE_CLIENT_ID=[configurato]
+GOOGLE_CLIENT_SECRET=[configurato]
 ```
 
 ---
 
 ## 📊 Stats
-- **Commit finale:** `e013e17`
+- **Commit attuale:** `c99b7d4`
 - **File:** 77+
 - **Linee codice:** 11,500+
 - **Endpoint API:** 18
 - **Tabelle DB:** 18
 
-## 🎯 Next Priority
-1. Fix Google OAuth redirect URI (dominio v2)
-2. Verificare/aggiungere AUTH_SECRET
-3. Test login completo
-4. Verificare funzionamento dashboard
+## 🎯 Next Steps
+1. Deploy su Vercel (branch fix/ui-audit-2026-02-06)
+2. Test login con Google OAuth in produzione
+3. Verificare UI/UX migliorata in produzione
+4. Merge branch su main
 
 ---
 
-*Ultimo update: 2026-02-05 (sera)*
-*Status: Deploy base completato, auth da finalizzare*
+*Ultimo update: 2026-02-06*
+*Status: Auth fix completati, pronto per deploy*

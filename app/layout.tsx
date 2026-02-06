@@ -19,6 +19,9 @@ export default function RootLayout({
   return (
     <html lang="it" suppressHydrationWarning>
       <body className={inter.className}>
+        <div style={{background: 'red', color: 'white', padding: '20px', textAlign: 'center', fontSize: '24px', fontWeight: 'bold'}}>
+          🔥 TEST VISUALE - SE VEDI QUESTO IL DEPLOY FUNZIONA 🔥
+        </div>
         <SessionProvider>
           <ThemeProvider
             attribute="class"

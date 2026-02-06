@@ -34,16 +34,16 @@ export function Sidebar() {
     <Tooltip.Provider delayDuration={0}>
       <div
         className={cn(
-          'relative flex h-screen flex-col border-r bg-background transition-all duration-300',
+          'relative flex h-screen flex-col border-r border-border/50 bg-white/80 backdrop-blur-xl transition-all duration-300 dark:bg-slate-950/80',
           collapsed ? 'w-16' : 'w-64'
         )}
       >
-        <div className="flex h-14 items-center justify-between border-b px-4">
-          {!collapsed && <span className="font-semibold">Menu</span>}
+        <div className="flex h-14 items-center justify-between border-b border-border/50 px-4">
+          {!collapsed && <span className="font-semibold text-sm text-muted-foreground">Menu</span>}
           <Button
             variant="ghost"
             size="icon"
-            className="h-8 w-8"
+            className="h-8 w-8 hover:bg-accent"
             onClick={() => setCollapsed(!collapsed)}
           >
             {collapsed ? (
@@ -63,9 +63,9 @@ export function Sidebar() {
               <Link
                 href={item.href}
                 className={cn(
-                  'flex items-center rounded-lg px-3 py-2 text-sm font-medium transition-colors',
+                  'flex items-center rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-200',
                   isActive
-                    ? 'bg-primary text-primary-foreground'
+                    ? 'bg-primary text-primary-foreground shadow-md shadow-primary/25'
                     : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground',
                   collapsed && 'justify-center px-2'
                 )}

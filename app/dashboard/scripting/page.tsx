@@ -3,9 +3,10 @@
 import { useState } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
-import { Wand2, Download, Save, FileText, Sparkles } from 'lucide-react'
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
+import { Wand2, Download, FileText, Sparkles, Loader2, AlertCircle } from 'lucide-react'
+import { toast } from 'sonner'
 
 export default function ScriptingPage() {
   const [prompt, setPrompt] = useState('')
@@ -13,11 +14,17 @@ export default function ScriptingPage() {
   const [script, setScript] = useState('')
   const [loading, setLoading] = useState(false)
   const [activeTab, setActiveTab] = useState<'outline' | 'script'>('outline')
+  const [error, setError] = useState<string | null>(null)
 
   const generateOutline = async () => {
-    if (!prompt.trim()) return
+    if (!prompt.trim()) {
+      toast.error('Please enter a prompt first')
+      return
+    }
     
     setLoading(true)
+    setError(null)
+    
     try {
       const response = await fetch('/api/generate', {
         method: 'POST',
@@ -28,12 +35,22 @@ export default function ScriptingPage() {
         }),
       })
       
+      if (!response.ok) {
+        throw new Error('Failed to generate outline')
+      }
+      
       const data = await response.json()
       if (data.content) {
         setOutline(data.content)
         setActiveTab('outline')
+        toast.success('Outline generated successfully!')
+      } else {
+        throw new Error('No content received from API')
       }
     } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to generate outline'
+      setError(message)
+      toast.error(message)
       console.error('Error generating outline:', error)
     } finally {
       setLoading(false)
@@ -41,9 +58,14 @@ export default function ScriptingPage() {
   }
 
   const generateScript = async () => {
-    if (!outline.trim()) return
+    if (!outline.trim()) {
+      toast.error('Please generate an outline first')
+      return
+    }
     
     setLoading(true)
+    setError(null)
+    
     try {
       const response = await fetch('/api/generate', {
         method: 'POST',
@@ -54,12 +76,22 @@ export default function ScriptingPage() {
         }),
       })
       
+      if (!response.ok) {
+        throw new Error('Failed to generate script')
+      }
+      
       const data = await response.json()
       if (data.content) {
         setScript(data.content)
         setActiveTab('script')
+        toast.success('Script generated successfully!')
+      } else {
+        throw new Error('No content received from API')
       }
     } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to generate script'
+      setError(message)
+      toast.error(message)
       console.error('Error generating script:', error)
     } finally {
       setLoading(false)
@@ -77,6 +109,7 @@ export default function ScriptingPage() {
     a.click()
     document.body.removeChild(a)
     URL.revokeObjectURL(url)
+    toast.success('File exported successfully!')
   }
 
   return (
@@ -87,6 +120,14 @@ export default function ScriptingPage() {
           Generate video scripts and outlines using AI.
         </p>
       </div>
+
+      {error && (
+        <Alert variant="destructive">
+          <AlertCircle className="h-4 w-4" />
+          <AlertTitle>Error</AlertTitle>
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      )}
 
       <div className="grid gap-6 lg:grid-cols-2">
         <div className="space-y-4">
@@ -106,14 +147,24 @@ export default function ScriptingPage() {
                 value={prompt}
                 onChange={(e) => setPrompt(e.target.value)}
                 rows={4}
+                disabled={loading}
               />
               <Button 
                 onClick={generateOutline} 
                 disabled={loading || !prompt.trim()}
                 className="w-full"
               >
-                <Wand2 className="mr-2 h-4 w-4" />
-                {loading && activeTab === 'outline' ? 'Generating...' : 'Generate Outline'}
+                {loading && activeTab !== 'script' ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Generating...
+                  </>
+                ) : (
+                  <>
+                    <Wand2 className="mr-2 h-4 w-4" />
+                    Generate Outline
+                  </>
+                )}
               </Button>
             </CardContent>
           </Card>
@@ -136,8 +187,17 @@ export default function ScriptingPage() {
                   variant="secondary"
                   className="w-full"
                 >
-                  <Sparkles className="mr-2 h-4 w-4" />
-                  {loading && activeTab === 'script' ? 'Generating...' : 'Generate Full Script'}
+                  {loading && activeTab === 'script' ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Generating...
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles className="mr-2 h-4 w-4" />
+                      Generate Full Script
+                    </>
+                  )}
                 </Button>
               </CardContent>
             </Card>
@@ -194,6 +254,7 @@ export default function ScriptingPage() {
                 : 'Your script will appear here...'
               }
               className="min-h-[400px] font-mono text-sm"
+              disabled={loading}
             />
           </CardContent>
         </Card>

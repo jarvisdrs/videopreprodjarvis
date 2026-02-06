@@ -1,45 +1,27 @@
 // DASHBOARD PAGE - VERSION 2026-02-06-1435
 'use client'
 
+import { useEffect, useState } from "react"
 import { useSession } from "next-auth/react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Plus, FileText, Calendar, DollarSign, TrendingUp, Clock } from 'lucide-react'
+import { Skeleton } from '@/components/ui/skeleton'
+import { Plus, FileText, Calendar, DollarSign, TrendingUp, Clock, FolderOpen } from 'lucide-react'
 import Link from 'next/link'
+import { EmptyState } from '@/components/empty-state'
+import { formatRelativeTime } from '@/lib/utils'
 
-const recentProjects = [
-  {
-    id: '1',
-    name: 'Brand Awareness Campaign',
-    description: 'Q1 video series for social media promotion',
-    status: 'in_progress',
-    updated_at: '2024-01-15T10:00:00Z',
-    scripts_count: 3,
-    tasks_count: 12,
-    budget: '$5,000',
-  },
-  {
-    id: '2',
-    name: 'Product Launch Video',
-    description: 'Main product launch video for spring collection',
-    status: 'planning',
-    updated_at: '2024-01-14T15:30:00Z',
-    scripts_count: 1,
-    tasks_count: 5,
-    budget: '$12,000',
-  },
-  {
-    id: '3',
-    name: 'Tutorial Series',
-    description: 'How-to video series for new features',
-    status: 'completed',
-    updated_at: '2024-01-10T09:00:00Z',
-    scripts_count: 5,
-    tasks_count: 20,
-    budget: '$8,500',
-  },
-]
+interface Project {
+  id: string
+  name: string
+  description: string
+  status: 'in_progress' | 'planning' | 'completed'
+  updated_at: string
+  scripts_count: number
+  tasks_count: number
+  budget: string
+}
 
 const stats = [
   { label: 'Active Projects', value: '5', icon: FileText, trend: '+2 this month', color: 'bg-blue-500/10 text-blue-600' },
@@ -66,23 +48,55 @@ const getStatusBadge = (status: string) => {
   )
 }
 
+function ProjectCardSkeleton() {
+  return (
+    <Card className="flex flex-col border-none shadow-md">
+      <CardHeader className="pb-3">
+        <div className="flex items-start justify-between gap-2">
+          <Skeleton className="h-6 w-32" />
+          <Skeleton className="h-5 w-20" />
+        </div>
+        <Skeleton className="h-4 w-full mt-2" />
+        <Skeleton className="h-4 w-2/3 mt-1" />
+      </CardHeader>
+      <CardContent className="flex-1 flex flex-col">
+        <div className="flex items-center gap-4 mb-4">
+          <Skeleton className="h-4 w-20" />
+          <Skeleton className="h-4 w-20" />
+          <Skeleton className="h-4 w-20" />
+        </div>
+        <div className="mt-auto pt-4 border-t">
+          <Skeleton className="h-3 w-24 mb-3" />
+          <Skeleton className="h-9 w-full" />
+        </div>
+      </CardContent>
+    </Card>
+  )
+}
+
 export default function DashboardPage() {
   const { data: session, status } = useSession()
-  const [projects, setProjects] = useState([])
+  const [projects, setProjects] = useState<Project[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   
   useEffect(() => {
-    // Fetch real projects from API
     fetch('/api/projects')
-      .then(res => res.json())
+      .then(res => {
+        if (!res.ok) throw new Error('Failed to fetch projects')
+        return res.json()
+      })
       .then(data => {
-        setProjects(data.slice(0, 3)) // Show first 3
+        setProjects(data.slice(0, 3))
         setLoading(false)
       })
-      .catch(() => setLoading(false))
+      .catch(err => {
+        setError(err.message)
+        setLoading(false)
+      })
   }, [])
   
-  if (status === "loading" || loading) {
+  if (status === "loading") {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
@@ -151,55 +165,79 @@ export default function DashboardPage() {
           </Link>
         </div>
 
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {recentProjects.map((project) => (
-            <Card key={project.id} className="flex flex-col border-none shadow-md hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
-              <CardHeader className="pb-3">
-                <div className="flex items-start justify-between gap-2">
-                  <CardTitle className="text-lg line-clamp-1">{project.name}</CardTitle>
-                  {getStatusBadge(project.status)}
-                </div>
-                <CardDescription className="line-clamp-2 mt-2">
-                  {project.description}
-                </CardDescription>
-              </CardHeader>
-              
-              <CardContent className="flex-1 flex flex-col">
-                <div className="flex items-center gap-4 text-sm text-muted-foreground mb-4">
-                  <div className="flex items-center gap-1">
-                    <FileText className="h-4 w-4" />
-                    {project.scripts_count} scripts
+        {loading ? (
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            <ProjectCardSkeleton />
+            <ProjectCardSkeleton />
+            <ProjectCardSkeleton />
+          </div>
+        ) : error ? (
+          <Card className="p-8">
+            <EmptyState
+              icon={FolderOpen}
+              title="Error loading projects"
+              description={error}
+            />
+          </Card>
+        ) : projects.length === 0 ? (
+          <Card className="p-8">
+            <EmptyState
+              icon={FolderOpen}
+              title="No projects yet"
+              description="Create your first project to get started with VideoPreProd AI."
+              action={{ label: 'Create Project', href: '/dashboard/projects/new' }}
+            />
+          </Card>
+        ) : (
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            {projects.map((project) => (
+              <Card key={project.id} className="flex flex-col border-none shadow-md hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
+                <CardHeader className="pb-3">
+                  <div className="flex items-start justify-between gap-2">
+                    <CardTitle className="text-lg line-clamp-1">{project.name}</CardTitle>
+                    {getStatusBadge(project.status)}
                   </div>
-                  <div className="flex items-center gap-1">
-                    <Calendar className="h-4 w-4" />
-                    {project.tasks_count} tasks
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <DollarSign className="h-4 w-4" />
-                    {project.budget}
-                  </div>
-                </div>
+                  <CardDescription className="line-clamp-2 mt-2">
+                    {project.description}
+                  </CardDescription>
+                </CardHeader>
                 
-                <div className="mt-auto pt-4 border-t">
-                  <div className="flex items-center justify-between text-xs text-muted-foreground mb-3">
+                <CardContent className="flex-1 flex flex-col">
+                  <div className="flex items-center gap-4 text-sm text-muted-foreground mb-4">
                     <div className="flex items-center gap-1">
-                      <Clock className="h-3 w-3" />
-                      Updated {new Date(project.updated_at).toLocaleDateString()}
+                      <FileText className="h-4 w-4" />
+                      {project.scripts_count} scripts
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <Calendar className="h-4 w-4" />
+                      {project.tasks_count} tasks
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <DollarSign className="h-4 w-4" />
+                      {project.budget}
                     </div>
                   </div>
                   
-                  <Link href={`/dashboard/projects/${project.id}`}>
-                    <Button variant="outline" className="w-full">
-                      View Project
-                    </Button>
-                  </Link>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+                  <div className="mt-auto pt-4 border-t">
+                    <div className="flex items-center justify-between text-xs text-muted-foreground mb-3">
+                      <div className="flex items-center gap-1">
+                        <Clock className="h-3 w-3" />
+                        Updated {formatRelativeTime(project.updated_at)}
+                      </div>
+                    </div>
+                    
+                    <Link href={`/dashboard/projects/${project.id}`}>
+                      <Button variant="outline" className="w-full">
+                        View Project
+                      </Button>
+                    </Link>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   )
 }
-// Force rebuild ven 6 feb 2026, 14:09:42, CET

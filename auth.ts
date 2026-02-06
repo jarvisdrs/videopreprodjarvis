@@ -38,6 +38,14 @@ export const authOptions: NextAuthOptions = {
         role: (user as any).role,
       },
     }),
+    redirect: ({ url, baseUrl }) => {
+      // Se l'URL è relativo, usa baseUrl
+      if (url.startsWith("/")) return `${baseUrl}${url}`
+      // Se l'URL è sullo stesso dominio, consentilo
+      if (url.startsWith(baseUrl)) return url
+      // Altrimenti reindirizza alla dashboard di default
+      return `${baseUrl}/dashboard`
+    },
   },
   events: {
     createUser: async ({ user }) => {

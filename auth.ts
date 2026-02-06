@@ -6,7 +6,8 @@ import { prisma } from "./lib/prisma"
 import type { NextAuthOptions } from "next-auth"
 
 export const authOptions: NextAuthOptions = {
-  adapter: PrismaAdapter(prisma),
+  // Rimuoviamo temporaneamente l'adapter per testare il login JWT puro
+  // adapter: PrismaAdapter(prisma),
   secret: process.env.AUTH_SECRET,
   providers: [
     GoogleProvider({

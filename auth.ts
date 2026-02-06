@@ -23,7 +23,7 @@ export const authOptions: NextAuthOptions = {
   ],
   pages: {
     signIn: "/login",
-    error: "/login",
+    error: "/auth/error",
   },
   session: {
     strategy: "database",
@@ -31,6 +31,10 @@ export const authOptions: NextAuthOptions = {
     updateAge: 24 * 60 * 60,
   },
   callbacks: {
+    signIn: async ({ user, account, profile }) => {
+      console.log("[NextAuth] SignIn callback:", { user: user?.email, provider: account?.provider })
+      return true
+    },
     session: ({ session, user }) => ({
       ...session,
       user: {
@@ -40,6 +44,11 @@ export const authOptions: NextAuthOptions = {
       },
     }),
     redirect: ({ url, baseUrl }) => {
+      console.log("[NextAuth] Redirect callback:", { url, baseUrl })
+      // Dopo login vai sempre alla dashboard
+      if (url === "/login" || url.includes("/auth/")) {
+        return `${baseUrl}/dashboard`
+      }
       // Se l'URL è relativo, usa baseUrl
       if (url.startsWith("/")) return `${baseUrl}${url}`
       // Se l'URL è sullo stesso dominio, consentilo
